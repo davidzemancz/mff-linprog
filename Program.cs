@@ -10,6 +10,8 @@ namespace Linprog{
         /// </summary>
         /// <param name="args">Arguments</param>
         static void Main(string[] args){
+            bool debug = false;
+
             try {
                 if (args.Length < 1) { throw new Exception("At least one argument required"); }
                 string firstArg = args[0];
@@ -17,9 +19,15 @@ namespace Linprog{
                     WriteHelpInfo();
                 }
                 else{ // input filename
-                    bool debug = Array.Exists(args, arg => arg == "--debug");
+                    string inputFile = firstArg;
+                    string outputFile = args.Length > 1 ? args[1] : "";
+
+                    // TODO
+                    debug = Array.Exists(args, arg => arg == "-d" || arg == "--debug");
+                    bool runGlpk = Array.Exists(args, arg => arg == "-r" || arg == "--run");
 
                     StreamReader reader = new(firstArg);
+                    StreamWriter writer = new(firstArg);
                     string firstLine = reader.ReadLine();
                     if (firstLine.StartsWith("WEIGHTED DIGRAPH")) {
                         Graph graph = ReadWeightedDirectedGraph(firstLine, reader);
@@ -32,7 +40,7 @@ namespace Linprog{
 
             } catch (Exception ex){
                 Console.WriteLine($"[{ex.GetType().Name}] {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                if(debug) Console.WriteLine(ex.StackTrace);
             }
         }
 
@@ -41,6 +49,8 @@ namespace Linprog{
         /// </summary>
         static void WriteHelpInfo(){
             // TODO
+            Console.WriteLine("Usage");
+            Console.WriteLine(" linprog [-h --help] [inputFileName] [outputFileName] [-r --run] [-d --debug]");
         }
 
         /// <summary>
@@ -72,7 +82,7 @@ namespace Linprog{
         }
 
         static void WriteGlpkScript(Graph graph){
-
+            
         }
     }
 }

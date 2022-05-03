@@ -18,29 +18,32 @@ namespace Linprog{
                 if (firstArg == "-h" || firstArg == "--help"){ // help
                     WriteHelpInfo();
                 }
-                else{ // input filename
+                else{ 
+                    // File names
                     string inputFile = firstArg;
-                    string outputFile = args.Length > 1 ? args[1] : "";
+                    string outputFile = args.Length > 1 ? args[1] : "./output.mod";
 
-                    // TODO
+                    // Flags
                     debug = Array.Exists(args, arg => arg == "-d" || arg == "--debug");
                     bool runGlpk = Array.Exists(args, arg => arg == "-r" || arg == "--run");
 
-                    StreamReader reader = new(firstArg);
-                    StreamWriter writer = new(firstArg);
-                    string firstLine = reader.ReadLine();
-                    if (firstLine.StartsWith("WEIGHTED DIGRAPH")) {
-                        Graph graph = ReadWeightedDirectedGraph(firstLine, reader);
-                        WriteGlpkScript(graph);
-                    }
-                    else if (firstLine.StartsWith("GRAPH")) {
-                        throw new NotImplementedException();
+                    // Reader file and write output
+                    using(StreamReader reader = new(inputFile))
+                    using(StreamWriter writer = new(outputFile)){
+                        string firstLine = reader.ReadLine();
+                        if (firstLine.StartsWith("WEIGHTED DIGRAPH")) {
+                            Graph graph = ReadWeightedDirectedGraph(firstLine, reader);
+                            WriteGlpkScript(graph, writer);
+                        }
+                        else if (firstLine.StartsWith("GRAPH")) {
+                            throw new NotImplementedException();
+                        }
                     }
                 }
 
             } catch (Exception ex){
                 Console.WriteLine($"[{ex.GetType().Name}] {ex.Message}");
-                if(debug) Console.WriteLine(ex.StackTrace);
+                if (debug) Console.WriteLine(ex.StackTrace);
             }
         }
 
@@ -48,9 +51,12 @@ namespace Linprog{
         /// Write help informations
         /// </summary>
         static void WriteHelpInfo(){
-            // TODO
             Console.WriteLine("Usage");
             Console.WriteLine(" linprog [-h --help] [inputFileName] [outputFileName] [-r --run] [-d --debug]");
+            Console.WriteLine("Options");
+            Console.WriteLine(" -h|--help        Display help informations.");
+            Console.WriteLine(" -r|--run         Run GLPK automatically.");
+            Console.WriteLine(" -d|--debug       Display debug informations during run.");
         }
 
         /// <summary>
@@ -81,8 +87,8 @@ namespace Linprog{
             return graph;
         }
 
-        static void WriteGlpkScript(Graph graph){
-            
+        static void WriteGlpkScript(Graph graph, StreamWriter writer){
+            writer.Write(graph.ToString());
         }
     }
 }

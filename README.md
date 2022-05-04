@@ -8,9 +8,9 @@
 * For  *linprog vstup-XXX.txt vystup-XXX.txt -d -r*
 
 # Usage
-linprog [-h --help] [inputFileName] [outputFileName] [-r --run] [-d --debug]
+* linprog [-h --help] [inputFileName] [outputFileName] [-r --run] [-d --debug]
 
 ## Options
--h|--help        Display help informations.
--r|--run         Run glpsol automatically.
--d|--debug       Display debug informations during run.
+* -h|--help        Display help informations.
+* -r|--run         Run glpsol automatically.
+* -d|--debug       Display debug informations during run.

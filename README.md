@@ -8,6 +8,7 @@
 
 ## Build
 * Use *dotnet build* command.
+* Program builds to *./bin/Debug/net6.0/* directory
 
 ## Options
 * -h|--help - Display help informations.

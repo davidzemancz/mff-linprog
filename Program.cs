@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
+using System.Text;
 
 namespace Linprog{
     class Program{
@@ -25,7 +27,7 @@ namespace Linprog{
 
                     // Flags
                     debug = Array.Exists(args, arg => arg == "-d" || arg == "--debug");
-                    bool runGlpk = Array.Exists(args, arg => arg == "-r" || arg == "--run");
+                    bool runGlpSol = Array.Exists(args, arg => arg == "-r" || arg == "--run");
 
                     // Reader file and write output
                     using(StreamReader reader = new(inputFile))
@@ -37,6 +39,18 @@ namespace Linprog{
                         }
                         else if (firstLine.StartsWith("GRAPH")) {
                             throw new NotImplementedException();
+                        }
+                    }
+
+                    // Run GlpSol
+                    if (runGlpSol){
+                        using (System.Diagnostics.Process proc = new System.Diagnostics.Process())
+                        {
+                            proc.StartInfo.FileName = "/bin/bash";
+                            proc.StartInfo.Arguments = "-c \" " + $"glpsol -m {outputFile}" + " \"";
+                            proc.StartInfo.UseShellExecute = false;
+                            proc.Start();
+                            proc.WaitForExit();
                         }
                     }
                 }
@@ -101,18 +115,19 @@ namespace Linprog{
                 end;
             */
 
-            // Variables
-            string objectiveFunction = "";
+            // Variables & objective function
+            StringBuilder edgesBuilder = new StringBuilder(); 
             foreach (KeyValuePair<Vertex, List<Edge>> kvp in graph.Neighbors){ 
                 foreach (Edge edge in kvp.Value){
-                    writer.WriteLine($"var r{edge.First.Id}_{edge.Second.Id} >= 0, <=1;");
-                    objectiveFunction += $"r{edge.First.Id}_{edge.Second.Id}*{edge.Weight} + ";
+                    edgesBuilder.Append($"({edge.First.Id},{edge.Second.Id},{edge.Weight}), ");
                 }
             }
-            if (objectiveFunction.Length > 0) objectiveFunction = objectiveFunction.Remove(objectiveFunction.Length - 2, 2);
+            string edges = edgesBuilder.ToString();
+            if (edges.Length > 0) edges = edges.Remove(edges.Length - 2, 2);
 
-            // Objective function
-            writer.WriteLine($"minimize obj: {objectiveFunction};");
+            writer.WriteLine("set Edges := {" + edges + "};");
+            writer.WriteLine("var r{(i, j, w) in Edges}, >= 0, <=1, integer;");
+            writer.WriteLine("minimize obj: sum{(i, j, w) in Edges} r[i, j, w]*w;");
 
             // Conditions
             int i = 0;
@@ -120,7 +135,7 @@ namespace Linprog{
                 writer.Write($"c{i++}: ");
                 for (int j = 0; j < cycle.Length; j++)
                 {
-                    writer.Write($"r{cycle[j].First.Id}_{cycle[j].Second.Id} ");
+                    writer.Write($"r[{cycle[j].First.Id},{cycle[j].Second.Id},{cycle[j].Weight}] ");
                     if (j < cycle.Length - 1) writer.Write("+ ");
                 }
                 writer.Write($">= 1;");
@@ -129,6 +144,13 @@ namespace Linprog{
 
             // Solve
             writer.WriteLine($"solve;");
+
+            // Print output
+            writer.WriteLine("printf \"#OUTPUT: %i \\n\",  sum{(i, j, w) in Edges} r[i, j, w]*w;");
+            writer.WriteLine("printf{(i, j, w) in Edges} if r[i, j, w] > 0 then \"%i --> %i\\n\" else \"\", i, j;");
+            writer.WriteLine("printf \"#OUTPUT END\\n\";");
+
+            // End
             writer.WriteLine($"end;");
 
             /*

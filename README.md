@@ -28,3 +28,9 @@
     * Only holds its Id. 
 * Edge
     * Oriented edge object that holds its first and second vertex.
+
+# Output
+* set Edges := {(v1,v2,weight),...}; - List of edges.
+* var r{(i, j, w) in Edges}, >= 0, <=1, integer; - Variable r(i,j,w) for each edge in {0,1} indicating, whether edge shoud be removed or not.
+* minimize obj: sum{(i, j, w) in Edges} r[i, j, w]*w; - Minimizing objective function.
+* c0: r[v1,v2,w1] + r[v2,v3,w2] + r[v3,v1,w3] >= 1; - Condition for each cycle of lenth three of four. Means that at least one edge must be removed (r[v1,v2,w] set to 1).

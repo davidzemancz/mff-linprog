@@ -88,7 +88,58 @@ namespace Linprog{
         }
 
         static void WriteGlpkScript(Graph graph, StreamWriter writer){
-            writer.Write(graph.ToString());
+            List<Edge[]> cyclesOfLengthThreeAndFour = graph.FindCyclesOfLengthThreeAndFour();
+
+            /*
+                var x >= 0;
+                var y, >= 3, <= 4;
+                var z >= 0;
+                maximize obj: 3*x + 5*y - 2*z;
+                p1: 2*x + 3*z <= 5;
+                p2: 2*z - 3*y <= 8;
+                solve;
+                end;
+            */
+
+            // Variables
+            string objectiveFunction = "";
+            foreach (KeyValuePair<Vertex, List<Edge>> kvp in graph.Neighbors){ 
+                foreach (Edge edge in kvp.Value){
+                    writer.WriteLine($"var r{edge.First.Id}_{edge.Second.Id} >= 0, <=1;");
+                    objectiveFunction += $"r{edge.First.Id}_{edge.Second.Id}*{edge.Weight} + ";
+                }
+            }
+            if (objectiveFunction.Length > 0) objectiveFunction = objectiveFunction.Remove(objectiveFunction.Length - 2, 2);
+
+            // Objective function
+            writer.WriteLine($"minimize obj: {objectiveFunction};");
+
+            // Conditions
+            int i = 0;
+            foreach (Edge[] cycle in cyclesOfLengthThreeAndFour){
+                writer.Write($"c{i++}: ");
+                for (int j = 0; j < cycle.Length; j++)
+                {
+                    writer.Write($"r{cycle[j].First.Id}_{cycle[j].Second.Id} ");
+                    if (j < cycle.Length - 1) writer.Write("+ ");
+                }
+                writer.Write($">= 1;");
+                writer.WriteLine();
+            }
+
+            // Solve
+            writer.WriteLine($"solve;");
+            writer.WriteLine($"end;");
+
+            /*
+            foreach (List<Edge> cycle in cyclesOfLengthThreeAndFour){
+                Console.WriteLine($"----- Cycle ({cycle.Count}) -----");
+                foreach (Edge edge in cycle){
+                    Console.WriteLine(edge.ToString());
+                }
+                Console.WriteLine("---------------------");
+            }
+            */
         }
     }
 }

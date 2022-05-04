@@ -52,6 +52,7 @@ namespace Linprog{
                     }
                 }
             }
+            // ... but it works
 
             return cycles;
         }

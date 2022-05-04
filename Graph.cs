@@ -5,6 +5,11 @@ namespace Linprog{
     class Graph{
         public Dictionary<Vertex, List<Edge>> Neighbors { get; set; } = new();
         public Dictionary<int, Vertex> Vertices { get; set; } = new();
+        
+        /// <summary>
+        /// Add edge to graph. Automatically adds vertices if they dont alerady exist.
+        /// </summary>
+        /// <param name="edge">Edge</param>
         public void AddEdge(Edge edge){
             // Add vertex
             if (Vertices.ContainsKey(edge.First.Id)){
@@ -26,6 +31,9 @@ namespace Linprog{
             }
         }
 
+        /// <summary>
+        /// Find all cycles of lenght three and four and returns it.
+        /// </summary>
          public List<Edge[]> FindCyclesOfLengthThreeAndFour(){
             List<Edge[]> cycles = new();
             

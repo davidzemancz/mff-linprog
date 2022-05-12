@@ -1,5 +1,5 @@
 # Intro
-Porgram for generating MathProg scripts for glpk solver.
+Program for generating MathProg scripts for glpk solver.
 
 # Requirements
 * [.NET SDK for .NET 6](https://docs.microsoft.com/en-us/dotnet/core/sdk) needed for build.
